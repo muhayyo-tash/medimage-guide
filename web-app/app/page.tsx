@@ -90,12 +90,14 @@ export default function Home() {
             </p>
           </div>
           <div className="flex items-center gap-4">
+            {/*
             <button
               onClick={loadDemo}
               className="px-4 py-2 text-sm font-mono text-muted-foreground hover:text-foreground border border-border rounded hover:bg-muted transition-colors"
             >
               Load Demo
             </button>
+             */}
             <button
               onClick={toggleTheme}
               className="px-3 py-2 text-sm font-mono border border-border rounded hover:bg-muted transition-colors"
