@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import UploadArea from "./components/UploadArea";
 import MRIViewer from "./components/MRIViewer";
 import DiagnosisPanel from "./components/DiagnosisPanel";
@@ -15,6 +15,10 @@ export default function Home() {
     null,
   );
 
+  useEffect(() => {
+    loadDemo();
+  }, []);
+
   const toggleTheme = () => {
     const newTheme = theme === "dark" ? "light" : "dark";
     setTheme(newTheme);
@@ -23,11 +27,9 @@ export default function Home() {
 
   const loadDemo = async () => {
     try {
-      // Fetch the actual demo data from the JSON file
       const response = await fetch("/demo/ankle/data.json");
       const data = await response.json();
 
-      // Transform the data to match MRIData interface
       const mriData: MRIData = {
         visualization: "/demo/ankle/ankle.png",
         regions: data.regions.map((r: any) => ({
@@ -60,19 +62,8 @@ export default function Home() {
     setResult(null);
 
     try {
-      // TODO: Connect to local Python backend
-      // For now, simulate analysis
       await new Promise((resolve) => setTimeout(resolve, 1000));
-
       setError("Connect to local backend: python api.py on port 8000");
-      // const formData = new FormData();
-      // formData.append("image", file);
-      // const response = await fetch("http://localhost:8000/analyze", {
-      //   method: "POST",
-      //   body: formData,
-      // });
-      // const data = await response.json();
-      // setResult(data);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -99,14 +90,12 @@ export default function Home() {
             </p>
           </div>
           <div className="flex items-center gap-4">
-            {!result && (
-              <button
-                onClick={loadDemo}
-                className="px-4 py-2 text-sm font-mono text-muted-foreground hover:text-foreground border border-border rounded hover:bg-muted transition-colors"
-              >
-                Load Demo
-              </button>
-            )}
+            <button
+              onClick={loadDemo}
+              className="px-4 py-2 text-sm font-mono text-muted-foreground hover:text-foreground border border-border rounded hover:bg-muted transition-colors"
+            >
+              Load Demo
+            </button>
             <button
               onClick={toggleTheme}
               className="px-3 py-2 text-sm font-mono border border-border rounded hover:bg-muted transition-colors"
@@ -119,29 +108,10 @@ export default function Home() {
       </header>
 
       <div className="max-w-7xl mx-auto px-6 py-6">
-        {/* Upload Section */}
-        {!result && !analyzing && <UploadArea onUpload={handleUpload} />}
 
-        {/* Analyzing State */}
-        {analyzing && (
-          <div className="border border-border rounded-lg bg-card p-12 text-center">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-foreground mb-4"></div>
-            <p className="text-sm font-mono text-muted-foreground">
-              Analyzing MRI scan...
-            </p>
-          </div>
-        )}
-
-        {/* Error */}
-        {error && (
-          <div className="border border-red-500/50 bg-red-500/10 rounded-lg p-4 mb-6">
-            <p className="text-sm font-mono text-red-400">{error}</p>
-          </div>
-        )}
-
-        {/* Results - Split View */}
+        {/* Results - Split View — shown above upload */}
         {result && (
-          <div className="space-y-6">
+          <div className="space-y-6 mb-8">
             {/* Metadata Bar */}
             <div className="border border-border rounded-lg bg-card px-4 py-3 flex items-center justify-between">
               <div className="flex items-center gap-6 text-sm font-mono">
@@ -168,37 +138,41 @@ export default function Home() {
 
             {/* Split View: MRI + Diagnosis */}
             <div className="grid grid-cols-2 gap-6">
-              {/* Left: MRI Visualization */}
               <MRIViewer
                 imageSrc={result.visualization}
                 regions={result.regions}
                 highlightedRegion={highlightedRegion}
                 onRegionClick={handleRegionHover}
               />
-
-              {/* Right: Diagnosis with Interactive Terms */}
               <DiagnosisPanel
                 diagnosis={result.diagnosis}
                 regions={result.regions}
                 onTermHover={handleRegionHover}
               />
             </div>
-
-            {/* New Analysis Button */}
-            <div className="flex justify-center pt-4">
-              <button
-                onClick={() => {
-                  setResult(null);
-                  setError(null);
-                  setHighlightedRegion(null);
-                }}
-                className="px-6 py-2 text-sm font-mono border border-border rounded hover:bg-muted transition-colors"
-              >
-                Analyze New MRI
-              </button>
-            </div>
           </div>
         )}
+
+        {/* Analyzing State */}
+        {analyzing && (
+          <div className="border border-border rounded-lg bg-card p-12 text-center mb-8">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-foreground mb-4"></div>
+            <p className="text-sm font-mono text-muted-foreground">
+              Analyzing MRI scan...
+            </p>
+          </div>
+        )}
+
+        {/* Error */}
+        {error && (
+          <div className="border border-red-500/50 bg-red-500/10 rounded-lg p-4 mb-6">
+            <p className="text-sm font-mono text-red-400">{error}</p>
+          </div>
+        )}
+
+        {/* Upload Section — always visible below */}
+        {!analyzing && <UploadArea onUpload={handleUpload} />}
+
       </div>
     </div>
   );
